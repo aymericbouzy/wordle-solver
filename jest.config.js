@@ -193,4 +193,9 @@ module.exports = {
 
 	// Whether to use watchman for file crawling
 	// watchman: true,
+
+	watchPlugins: [
+		"jest-watch-typeahead/filename",
+		"jest-watch-typeahead/testname",
+	],
 };
