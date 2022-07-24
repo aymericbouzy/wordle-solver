@@ -6,13 +6,8 @@ import assert from "assert";
 type Word = string;
 // type SplitWord = [Char, Char, Char, Char, Char];
 type PatternChar = 0 | 1 | 2;
-type Pattern = [
-	PatternChar,
-	PatternChar,
-	PatternChar,
-	PatternChar,
-	PatternChar
-];
+type Pattern =
+	`${PatternChar}${PatternChar}${PatternChar}${PatternChar}${PatternChar}`;
 
 const fiveLetterWord = /^[A-Z]{5}$/;
 
@@ -32,7 +27,7 @@ export class Game {
 			return counts;
 		}, {} as Record<string, number>);
 
-		const pattern = Array(5).fill(0) as Pattern;
+		const pattern = Array(5).fill(0);
 
 		guessWord.split("").forEach((char, index) => {
 			if (this.chosenWord[index] === char) {
@@ -50,6 +45,10 @@ export class Game {
 			}
 		});
 
-		return pattern;
+		const stringPattern = pattern.join("") as Pattern;
+
+		this.guesses.push({ word: guessWord, pattern: stringPattern });
+
+		return stringPattern;
 	}
 }
