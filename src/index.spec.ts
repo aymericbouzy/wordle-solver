@@ -1,4 +1,4 @@
-import { Game } from ".";
+import { Game, getRemainingWords } from ".";
 
 describe("guess", () => {
 	it("returns the correct pattern", () => {
@@ -20,5 +20,41 @@ describe("guess", () => {
 		const game = new Game("TRUIE");
 
 		expect(game.guess("DATEE")).toEqual("00102");
+	});
+});
+
+const POSSIBLE_WORDS = [
+	"BIENS",
+	"CHIEN",
+	"RONDE",
+	"GALOP",
+	"GIGOT",
+	"LOUPS",
+	"FLEAU",
+	"FLEUR",
+	"FORCE",
+	"DOREE",
+	"VACHE",
+	"CHAMP",
+	"VERRE",
+	"HUITS",
+];
+
+describe("remainingWords", () => {
+	it("computes the remaining words", () => {
+		const game = new Game("CHIEN");
+
+		const turn1 = getRemainingWords(
+			"GALOP",
+			game.guess("GALOP"),
+			POSSIBLE_WORDS
+		);
+		expect(turn1).toEqual(["BIENS", "CHIEN", "VERRE", "HUITS"]);
+
+		const turn2 = getRemainingWords("BIENS", game.guess("BIENS"), turn1);
+		expect(turn2).toEqual(["CHIEN"]);
+
+		const turn3 = getRemainingWords("CHIEN", game.guess("CHIEN"), turn2);
+		expect(turn3).toEqual(["CHIEN"]);
 	});
 });

@@ -47,8 +47,18 @@ export class Game {
 
 		const stringPattern = pattern.join("") as Pattern;
 
-		this.guesses.push({ word: guessWord, pattern: stringPattern });
-
 		return stringPattern;
 	}
+}
+
+export function getRemainingWords(
+	guess: Word,
+	pattern: Pattern,
+	words: Word[]
+): Word[] {
+	return words.filter((solution) => {
+		const game = new Game(solution);
+
+		return game.guess(guess) === pattern;
+	});
 }
