@@ -1,4 +1,4 @@
-import { Game, getRemainingWords } from ".";
+import { Game, getRemainingWords, solve } from ".";
 
 describe("guess", () => {
 	it("returns the correct pattern", () => {
@@ -56,5 +56,16 @@ describe("remainingWords", () => {
 
 		const turn3 = getRemainingWords("CHIEN", game.guess("CHIEN"), turn2);
 		expect(turn3).toEqual(["CHIEN"]);
+	});
+});
+
+describe("solver", () => {
+	it("computes the best guess", () => {
+		const { bestGuess, expectation } = solve({
+			possibleWords: POSSIBLE_WORDS,
+			remainingWords: ["FLEUR", "GALOP", "VERRE", "HUITS"],
+		});
+		expect(expectation).toBe(1 / 4 + (3 * 2) / 4);
+		expect(bestGuess).toBe("FLEUR");
 	});
 });
