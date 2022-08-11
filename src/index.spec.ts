@@ -1,25 +1,19 @@
-import { Game, getRemainingWords, solve } from ".";
+import { getPattern, getRemainingWords, solve } from ".";
 
 describe("guess", () => {
 	it("returns the correct pattern", () => {
-		const game = new Game("PLACE");
-
-		expect(game.guess("FORET")).toEqual("00010");
-		expect(game.guess("PLACE")).toEqual("22222");
+		expect(getPattern("PLACE", "FORET")).toEqual("00010");
+		expect(getPattern("PLACE", "PLACE")).toEqual("22222");
 	});
 
-	it("handles duplicate letters in chosen word", () => {
-		const game = new Game("FETES");
-
-		expect(game.guess("FORET")).toEqual("20021");
-		expect(game.guess("BETES")).toEqual("02222");
-		expect(game.guess("CREEE")).toEqual("00120"); // or "00021"
+	it("handles duplicate letters in solution word", () => {
+		expect(getPattern("FETES", "FORET")).toEqual("20021");
+		expect(getPattern("FETES", "BETES")).toEqual("02222");
+		expect(getPattern("FETES", "CREEE")).toEqual("00120"); // or "00021"
 	});
 
 	it("handles duplicate letters in guess word", () => {
-		const game = new Game("TRUIE");
-
-		expect(game.guess("DATEE")).toEqual("00102");
+		expect(getPattern("TRUIE", "DATEE")).toEqual("00102");
 	});
 });
 
@@ -42,19 +36,25 @@ const POSSIBLE_WORDS = [
 
 describe("remainingWords", () => {
 	it("computes the remaining words", () => {
-		const game = new Game("CHIEN");
-
 		const turn1 = getRemainingWords(
 			"GALOP",
-			game.guess("GALOP"),
+			getPattern("CHIEN", "GALOP"),
 			POSSIBLE_WORDS
 		);
 		expect(turn1).toEqual(["BIENS", "CHIEN", "VERRE", "HUITS"]);
 
-		const turn2 = getRemainingWords("BIENS", game.guess("BIENS"), turn1);
+		const turn2 = getRemainingWords(
+			"BIENS",
+			getPattern("CHIEN", "BIENS"),
+			turn1
+		);
 		expect(turn2).toEqual(["CHIEN"]);
 
-		const turn3 = getRemainingWords("CHIEN", game.guess("CHIEN"), turn2);
+		const turn3 = getRemainingWords(
+			"CHIEN",
+			getPattern("CHIEN", "CHIEN"),
+			turn2
+		);
 		expect(turn3).toEqual(["CHIEN"]);
 	});
 });

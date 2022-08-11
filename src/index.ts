@@ -13,15 +13,12 @@ type Pattern =
 
 const fiveLetterWord = /^[A-Z]{5}$/;
 
-export class Game {
-	constructor(private readonly chosenWord: Word) {
-		assert.ok(fiveLetterWord.test(chosenWord));
-	}
-
-	guess(guessWord: Word): Pattern {
-		assert.ok(fiveLetterWord.test(guessWord));
-
-		const letterCounts = this.chosenWord.split("").reduce((counts, char) => {
+export const getPattern = memoize(
+	(solution, guess) => `${solution}:${guess}`,
+	(solution: Word, guess: Word) => {
+		assert.ok(fiveLetterWord.test(solution));
+		assert.ok(fiveLetterWord.test(guess));
+		const letterCounts = solution.split("").reduce((counts, char) => {
 			if (!counts[char]) counts[char] = 0;
 
 			counts[char] += 1;
@@ -31,16 +28,16 @@ export class Game {
 
 		const pattern = Array(5).fill(0);
 
-		guessWord.split("").forEach((char, index) => {
-			if (this.chosenWord[index] === char) {
+		guess.split("").forEach((char, index) => {
+			if (solution[index] === char) {
 				letterCounts[char] -= 1;
 
 				pattern[index] = 2;
 			}
 		});
 
-		guessWord.split("").forEach((char, index) => {
-			if (this.chosenWord[index] !== char && letterCounts[char]) {
+		guess.split("").forEach((char, index) => {
+			if (solution[index] !== char && letterCounts[char]) {
 				letterCounts[char] -= 1;
 
 				pattern[index] = 1;
@@ -51,7 +48,7 @@ export class Game {
 
 		return stringPattern;
 	}
-}
+);
 
 export function getRemainingWords(
 	guess: Word,
@@ -59,9 +56,7 @@ export function getRemainingWords(
 	words: Word[]
 ): Word[] {
 	return words.filter((solution) => {
-		const game = new Game(solution);
-
-		return game.guess(guess) === pattern;
+		return getPattern(solution, guess) === pattern;
 	});
 }
 
@@ -119,7 +114,7 @@ function* tryEachWord({
 
 				const words = getRemainingWords(
 					guess,
-					new Game(solution).guess(guess),
+					getPattern(solution, guess),
 					remainingWords
 				);
 
