@@ -13,11 +13,11 @@ const fiveLetterWord = /^[A-Z]{5}$/;
 
 export class Game {
 	constructor(private readonly chosenWord: Word) {
-		assert(fiveLetterWord.test(this.chosenWord));
+		assert.ok(fiveLetterWord.test(chosenWord));
 	}
 
 	guess(guessWord: Word): Pattern {
-		assert(fiveLetterWord.test(guessWord));
+		assert.ok(fiveLetterWord.test(guessWord));
 
 		const letterCounts = this.chosenWord.split("").reduce((counts, char) => {
 			if (!counts[char]) counts[char] = 0;
@@ -121,7 +121,7 @@ function getGuessExpectation(
 			remainingWords
 		);
 
-		assert(words.length < remainingWords.length, "useless guess");
+		assert.ok(words.length < remainingWords.length, "useless guess");
 
 		const result = solve({ possibleWords, remainingWords: words });
 
