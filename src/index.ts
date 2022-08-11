@@ -1,4 +1,5 @@
 import assert, { AssertionError } from "assert";
+import { memoize } from "./memoize";
 import { progress } from "./progress";
 
 // // FIXME
@@ -64,40 +65,43 @@ export function getRemainingWords(
 	});
 }
 
-export function solve({
-	possibleWords,
-	remainingWords,
-	printProgress,
-}: {
-	possibleWords: Word[];
-	remainingWords: Word[];
-	printProgress?: boolean;
-}): {
-	bestGuess: Word;
-	expectation: number;
-} {
-	if (remainingWords.length < 2) {
-		return { bestGuess: remainingWords[0], expectation: 1 };
-	}
-
-	const iterable = tryEachWord({ remainingWords, possibleWords });
-
-	const results = printProgress
-		? [...progress(iterable, possibleWords.length)]
-		: [...iterable];
-
-	const { guess: bestGuess, expectation } = results.reduce(
-		({ guess, expectation }, result) => {
-			if (result.expectation < expectation) {
-				return result;
-			}
-
-			return { guess, expectation };
+export const solve = memoize(
+	({ remainingWords }) => remainingWords.sort().join(","),
+	function ({
+		possibleWords,
+		remainingWords,
+		printProgress,
+	}: {
+		possibleWords: Word[];
+		remainingWords: Word[];
+		printProgress?: boolean;
+	}): {
+		bestGuess: Word;
+		expectation: number;
+	} {
+		if (remainingWords.length < 2) {
+			return { bestGuess: remainingWords[0], expectation: 1 };
 		}
-	);
 
-	return { bestGuess, expectation };
-}
+		const iterable = tryEachWord({ remainingWords, possibleWords });
+
+		const results = printProgress
+			? [...progress(iterable, possibleWords.length)]
+			: [...iterable];
+
+		const { guess: bestGuess, expectation } = results.reduce(
+			({ guess, expectation }, result) => {
+				if (result.expectation < expectation) {
+					return result;
+				}
+
+				return { guess, expectation };
+			}
+		);
+
+		return { bestGuess, expectation };
+	}
+);
 
 function* tryEachWord({
 	remainingWords,
