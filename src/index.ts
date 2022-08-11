@@ -1,4 +1,5 @@
 import assert, { AssertionError } from "assert";
+import { progress } from "./progress";
 
 // // FIXME
 // type Char = string;
@@ -66,9 +67,11 @@ export function getRemainingWords(
 export function solve({
 	possibleWords,
 	remainingWords,
+	printProgress,
 }: {
 	possibleWords: Word[];
 	remainingWords: Word[];
+	printProgress?: boolean;
 }): {
 	bestGuess: Word;
 	expectation: number;
@@ -77,20 +80,57 @@ export function solve({
 		return { bestGuess: remainingWords[0], expectation: 1 };
 	}
 
-	let bestGuess = "";
-	let expectation = 0;
+	const iterable = tryEachWord({ remainingWords, possibleWords });
 
+	const results = printProgress
+		? [...progress(iterable, possibleWords.length)]
+		: [...iterable];
+
+	const { guess: bestGuess, expectation } = results.reduce(
+		({ guess, expectation }, result) => {
+			if (result.expectation < expectation) {
+				return result;
+			}
+
+			return { guess, expectation };
+		}
+	);
+
+	return { bestGuess, expectation };
+}
+
+function* tryEachWord({
+	remainingWords,
+	possibleWords,
+}: {
+	remainingWords: Word[];
+	possibleWords: Word[];
+}) {
 	for (const guess of possibleWords) {
 		try {
-			const guessExpectation = getGuessExpectation(guess, {
-				remainingWords,
-				possibleWords,
+			const expectations = remainingWords.map((solution) => {
+				if (solution === guess) {
+					return 1;
+				}
+
+				const words = getRemainingWords(
+					guess,
+					new Game(solution).guess(guess),
+					remainingWords
+				);
+
+				assert.ok(words.length < remainingWords.length, "useless guess");
+
+				const result = solve({ possibleWords, remainingWords: words });
+
+				return result.expectation + 1;
 			});
 
-			if (!expectation || expectation > guessExpectation) {
-				expectation = guessExpectation;
-				bestGuess = guess;
-			}
+			yield {
+				expectation:
+					expectations.reduce((s, e) => s + e, 0) / expectations.length,
+				guess,
+			};
 		} catch (error) {
 			if (
 				!(error instanceof AssertionError && error.message === "useless guess")
@@ -99,34 +139,4 @@ export function solve({
 			}
 		}
 	}
-
-	return { bestGuess, expectation };
-}
-
-function getGuessExpectation(
-	guess: Word,
-	{
-		remainingWords,
-		possibleWords,
-	}: { remainingWords: Word[]; possibleWords: Word[] }
-) {
-	const expectations = remainingWords.map((solution) => {
-		if (solution === guess) {
-			return 1;
-		}
-
-		const words = getRemainingWords(
-			guess,
-			new Game(solution).guess(guess),
-			remainingWords
-		);
-
-		assert.ok(words.length < remainingWords.length, "useless guess");
-
-		const result = solve({ possibleWords, remainingWords: words });
-
-		return result.expectation + 1;
-	});
-
-	return expectations.reduce((s, e) => s + e, 0) / expectations.length;
 }
