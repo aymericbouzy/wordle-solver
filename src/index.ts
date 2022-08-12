@@ -1,4 +1,5 @@
 import assert, { AssertionError } from "assert";
+import { orderBy } from "lodash";
 import { memoize } from "./memoize";
 import { progress } from "./progress";
 
@@ -74,10 +75,6 @@ export const solve = memoize(
 		bestGuess: Word;
 		expectation: number;
 	} {
-		if (remainingWords.length < 2) {
-			return { bestGuess: remainingWords[0], expectation: 1 };
-		}
-
 		const iterable = tryEachWord({ remainingWords, possibleWords });
 
 		const results = printProgress
@@ -105,31 +102,20 @@ function* tryEachWord({
 	remainingWords: Word[];
 	possibleWords: Word[];
 }) {
-	for (const guess of possibleWords) {
+	for (const guess of orderBy(possibleWords, (word) =>
+		remainingWords.includes(word) ? 0 : 1
+	)) {
 		try {
-			const expectations = remainingWords.map((solution) => {
-				if (solution === guess) {
-					return 1;
-				}
-
-				const words = getRemainingWords(
-					guess,
-					getPattern(solution, guess),
-					remainingWords
-				);
-
-				assert.ok(words.length < remainingWords.length, "useless guess");
-
-				const result = solve({ possibleWords, remainingWords: words });
-
-				return result.expectation + 1;
+			const expectation = getGuessExpectation(guess, {
+				possibleWords,
+				remainingWords,
 			});
 
-			yield {
-				expectation:
-					expectations.reduce((s, e) => s + e, 0) / expectations.length,
-				guess,
-			};
+			yield { expectation, guess };
+
+			if (expectation < 2) {
+				break;
+			}
 		} catch (error) {
 			if (
 				!(error instanceof AssertionError && error.message === "useless guess")
@@ -138,4 +124,35 @@ function* tryEachWord({
 			}
 		}
 	}
+}
+
+function getGuessExpectation(
+	guess: Word,
+	{
+		possibleWords,
+		remainingWords,
+	}: {
+		remainingWords: Word[];
+		possibleWords: Word[];
+	}
+) {
+	const expectations = remainingWords.map((solution) => {
+		if (solution === guess) {
+			return 1;
+		}
+
+		const words = getRemainingWords(
+			guess,
+			getPattern(solution, guess),
+			remainingWords
+		);
+
+		assert.ok(words.length < remainingWords.length, "useless guess");
+
+		const result = solve({ possibleWords, remainingWords: words });
+
+		return result.expectation + 1;
+	});
+
+	return expectations.reduce((s, e) => s + e, 0) / expectations.length;
 }

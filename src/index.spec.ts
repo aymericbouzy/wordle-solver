@@ -25,13 +25,13 @@ const POSSIBLE_WORDS = [
 	"GIGOT",
 	"LOUPS",
 	"FLEAU",
-	"FLEUR",
 	"FORCE",
 	"DOREE",
 	"VACHE",
 	"CHAMP",
 	"VERRE",
 	"HUITS",
+	"FLEUR",
 ];
 
 describe("remainingWords", () => {
