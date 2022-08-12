@@ -3,8 +3,7 @@ import { orderBy } from "lodash";
 import { memoize } from "./memoize";
 import { progress } from "./progress";
 
-// // FIXME
-// type Char = string;
+type Char = string;
 // FIXME
 type Word = string;
 // type SplitWord = [Char, Char, Char, Char, Char];
@@ -75,10 +74,18 @@ export const solve = memoize(
 		bestGuess: Word;
 		expectation: number;
 	} {
-		const iterable = tryEachWord({ remainingWords, possibleWords });
+		const possibleLetters = getPossibleChars(remainingWords);
+		const guesses = orderBy(
+			possibleWords.filter((word) =>
+				word.split("").some((char) => possibleLetters.has(char))
+			),
+			(word) => (remainingWords.includes(word) ? 0 : 1)
+		);
+
+		const iterable = tryEachWord({ remainingWords, possibleWords: guesses });
 
 		const results = printProgress
-			? [...progress(iterable, possibleWords.length)]
+			? [...progress(iterable, guesses.length)]
 			: [...iterable];
 
 		const { guess: bestGuess, expectation } = results.reduce(
@@ -102,9 +109,7 @@ function* tryEachWord({
 	remainingWords: Word[];
 	possibleWords: Word[];
 }) {
-	for (const guess of orderBy(possibleWords, (word) =>
-		remainingWords.includes(word) ? 0 : 1
-	)) {
+	for (const guess of possibleWords) {
 		try {
 			const expectation = getGuessExpectation(guess, {
 				possibleWords,
@@ -155,4 +160,16 @@ function getGuessExpectation(
 	});
 
 	return expectations.reduce((s, e) => s + e, 0) / expectations.length;
+}
+
+function getPossibleChars(remainingWords: Word[]): Set<Char> {
+	const possibleChars = new Set<Char>();
+
+	for (const word of remainingWords) {
+		for (const char of word) {
+			possibleChars.add(char);
+		}
+	}
+
+	return possibleChars;
 }
