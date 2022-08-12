@@ -14,6 +14,7 @@ type Pattern =
 const fiveLetterWord = /^[A-Z]{5}$/;
 
 export const getPattern = memoize(
+	"patterns",
 	(solution, guess) => `${solution}:${guess}`,
 	(solution: Word, guess: Word) => {
 		assert.ok(fiveLetterWord.test(solution));
@@ -61,6 +62,7 @@ export function getRemainingWords(
 }
 
 export const solve = memoize(
+	"expectations",
 	({ remainingWords }) => remainingWords.sort().join(","),
 	function ({
 		possibleWords,
