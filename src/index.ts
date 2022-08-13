@@ -5,10 +5,10 @@ import { progress } from "./progress";
 
 type Char = string;
 // FIXME
-type Word = string;
+export type Word = string;
 // type SplitWord = [Char, Char, Char, Char, Char];
 type PatternChar = 0 | 1 | 2;
-type Pattern =
+export type Pattern =
 	`${PatternChar}${PatternChar}${PatternChar}${PatternChar}${PatternChar}`;
 
 const fiveLetterWord = /^[A-Z]{5}$/;
