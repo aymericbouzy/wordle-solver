@@ -7,6 +7,8 @@ export function memoize<A extends any[], R>(
 ): (...args: A) => R {
 	const memory = new Map<string, R>();
 
+	console.log(`using ${__dirname}/${filename}.json`);
+
 	try {
 		const data = readFileSync(`${__dirname}/${filename}.json`, {
 			encoding: "utf8",
@@ -24,6 +26,12 @@ export function memoize<A extends any[], R>(
 
 		writeFileSync(`${__dirname}/${filename}.json`, data, {
 			encoding: "utf8",
+		});
+	}
+
+	if (process && typeof process.on === "function") {
+		process.on("exit", () => {
+			saveMemory();
 		});
 	}
 
