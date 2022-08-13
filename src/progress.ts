@@ -7,12 +7,14 @@ export function* progress<T>(
 
 	for (const operation of process) {
 		doneCount++;
+
+		const percent = ((doneCount / operationCount) * 100).toFixed(2);
+		const estimatedDate = new Date(
+			new Date().valueOf() +
+				((new Date().valueOf() - start.valueOf()) * operationCount) / doneCount
+		);
 		console.log(
-			`${(doneCount / operationCount) * 100}% (estimated: ${new Date(
-				new Date().valueOf() +
-					((new Date().valueOf() - start.valueOf()) * operationCount) /
-						doneCount
-			)})`
+			`${percent}% (estimated: ${estimatedDate}): ${JSON.stringify(operation)}`
 		);
 		yield operation;
 	}
