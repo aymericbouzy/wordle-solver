@@ -12,7 +12,8 @@
 		"lint": "eslint --cache . .",
 		"format": "prettier --write .",
 		"prepublishOnly": "yarn build",
-		"start": "ts-node ./src/scripts"
+		"prestart": "yarn build",
+		"start": "node --inspect ./dist/script"
 	},
 	"devDependencies": {
 		"@swc/core": "^1.2.162",
@@ -39,7 +40,6 @@
 		"dist"
 	],
 	"dependencies": {
-		"lodash": "^4.17.21",
-		"ts-node": "^10.9.1"
+		"lodash": "^4.17.21"
 	}
 }
