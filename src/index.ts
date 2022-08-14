@@ -94,7 +94,10 @@ export const solve = memoize(
 		let expectation = 0;
 
 		for (const result of iterable) {
-			if (!expectation || expectation > result.expectation) {
+			if (
+				result.expectation &&
+				(!expectation || expectation > result.expectation)
+			) {
 				expectation = result.expectation;
 				bestGuess = result.guess;
 			}
@@ -107,16 +110,28 @@ export const solve = memoize(
 function* tryEachWord({
 	remainingWords,
 	possibleWords,
+	unlessHigherThan: initialUnlessHigherThan = NaN,
 }: {
 	remainingWords: Word[];
 	possibleWords: Word[];
-}): Iterable<{ guess: Word; expectation: number }> {
+	unlessHigherThan?: number;
+}): Iterable<
+	| { guess: Word; expectation: number }
+	| { guess: Word; error: string; expectation: undefined }
+> {
+	let unlessHigherThan = initialUnlessHigherThan;
+
 	for (const guess of possibleWords) {
 		try {
 			const expectation = getGuessExpectation(guess, {
 				possibleWords,
 				remainingWords,
+				unlessHigherThan,
 			});
+
+			if (!unlessHigherThan || expectation < unlessHigherThan) {
+				unlessHigherThan = expectation;
+			}
 
 			yield { expectation, guess };
 
@@ -124,7 +139,11 @@ function* tryEachWord({
 				break;
 			}
 		} catch (error) {
-			if (error !== "useless guess") {
+			if (error === "too high") {
+				yield { guess, error: "too high", expectation: undefined };
+			} else if (error === "useless guess") {
+				yield { guess, error: "useless guess", expectation: undefined };
+			} else {
 				throw error;
 			}
 		}
@@ -136,32 +155,44 @@ function getGuessExpectation(
 	{
 		possibleWords,
 		remainingWords,
+		unlessHigherThan,
 	}: {
 		remainingWords: Word[];
 		possibleWords: Word[];
+		unlessHigherThan: number;
 	}
 ) {
-	const expectations = remainingWords.map((solution) => {
+	const optimisticIndividualOutput =
+		(1 + (remainingWords.length - 1) * 2) / remainingWords.length;
+	let optimisticOutput = remainingWords.length * optimisticIndividualOutput;
+
+	for (const solution of remainingWords) {
+		optimisticOutput -= optimisticIndividualOutput;
+
 		if (solution === guess) {
-			return 1;
+			optimisticOutput += 1;
+		} else {
+			const words = getRemainingWords(
+				guess,
+				getPattern(solution, guess),
+				remainingWords
+			);
+
+			if (words.length === remainingWords.length) {
+				throw "useless guess";
+			}
+
+			const result = solve({ possibleWords, remainingWords: words });
+
+			optimisticOutput += result.expectation + 1;
 		}
 
-		const words = getRemainingWords(
-			guess,
-			getPattern(solution, guess),
-			remainingWords
-		);
-
-		if (words.length === remainingWords.length) {
-			throw "useless guess";
+		if (optimisticOutput > unlessHigherThan * remainingWords.length) {
+			throw "too high";
 		}
+	}
 
-		const result = solve({ possibleWords, remainingWords: words });
-
-		return result.expectation + 1;
-	});
-
-	return expectations.reduce((s, e) => s + e, 0) / expectations.length;
+	return optimisticOutput / remainingWords.length;
 }
 
 function getPossibleChars(remainingWords: Word[]): Set<Char> {
