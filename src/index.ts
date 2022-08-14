@@ -1,4 +1,4 @@
-import assert, { AssertionError } from "assert";
+import assert from "assert";
 import { orderBy } from "lodash";
 import { memoize } from "./memoize";
 import { progress } from "./progress";
@@ -124,9 +124,7 @@ function* tryEachWord({
 				break;
 			}
 		} catch (error) {
-			if (
-				!(error instanceof AssertionError && error.message === "useless guess")
-			) {
+			if (error !== "useless guess") {
 				throw error;
 			}
 		}
@@ -154,7 +152,9 @@ function getGuessExpectation(
 			remainingWords
 		);
 
-		assert.ok(words.length < remainingWords.length, "useless guess");
+		if (words.length === remainingWords.length) {
+			throw "useless guess";
+		}
 
 		const result = solve({ possibleWords, remainingWords: words });
 
