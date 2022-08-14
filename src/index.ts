@@ -84,21 +84,21 @@ export const solve = memoize(
 			(word) => (remainingWords.includes(word) ? 0 : 1)
 		);
 
-		const iterable = tryEachWord({ remainingWords, possibleWords: guesses });
+		let iterable = tryEachWord({ remainingWords, possibleWords: guesses });
 
-		const results = printProgress
-			? [...progress(iterable, guesses.length)]
-			: [...iterable];
+		if (printProgress) {
+			iterable = progress(iterable, guesses.length);
+		}
 
-		const { guess: bestGuess, expectation } = results.reduce(
-			({ guess, expectation }, result) => {
-				if (result.expectation < expectation) {
-					return result;
-				}
+		let bestGuess = "";
+		let expectation = 0;
 
-				return { guess, expectation };
+		for (const result of iterable) {
+			if (!expectation || expectation > result.expectation) {
+				expectation = result.expectation;
+				bestGuess = result.guess;
 			}
-		);
+		}
 
 		return { bestGuess, expectation };
 	}
@@ -110,7 +110,7 @@ function* tryEachWord({
 }: {
 	remainingWords: Word[];
 	possibleWords: Word[];
-}) {
+}): Iterable<{ guess: Word; expectation: number }> {
 	for (const guess of possibleWords) {
 		try {
 			const expectation = getGuessExpectation(guess, {
