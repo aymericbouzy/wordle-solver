@@ -68,4 +68,13 @@ describe("solver", () => {
 		expect(expectation).toBe(1 / 4 + (3 * 2) / 4);
 		expect(bestGuess).toBe("FLEUR");
 	});
+
+	it("works with a complex example", async () => {
+		const { bestGuess, expectation } = solve({
+			possibleWords: (await import("./words.json")).default,
+			remainingWords: ["GALON", "GAZON", "SALON", "SAVON", "SAXON", "TALON"],
+		});
+		expect(expectation).toBeCloseTo(2);
+		expect(bestGuess).toBe("VOLTS");
+	});
 });
