@@ -67,10 +67,12 @@ export const solve = memoize(
 	function ({
 		possibleWords,
 		remainingWords,
+		unlessHigherThan = NaN,
 		printProgress,
 	}: {
 		possibleWords: Word[];
 		remainingWords: Word[];
+		unlessHigherThan?: number;
 		printProgress?: boolean;
 	}): {
 		bestGuess: Word;
@@ -84,7 +86,11 @@ export const solve = memoize(
 			(word) => (remainingWords.includes(word) ? 0 : 1)
 		);
 
-		let iterable = tryEachWord({ remainingWords, possibleWords: guesses });
+		let iterable = tryEachWord({
+			remainingWords,
+			possibleWords: guesses,
+			unlessHigherThan,
+		});
 
 		if (printProgress) {
 			iterable = progress(iterable, guesses.length);
@@ -103,7 +109,11 @@ export const solve = memoize(
 			}
 		}
 
-		return { bestGuess, expectation };
+		if (expectation) {
+			return { bestGuess, expectation };
+		}
+
+		throw "too high";
 	}
 );
 
@@ -182,7 +192,14 @@ function getGuessExpectation(
 				throw "useless guess";
 			}
 
-			const result = solve({ possibleWords, remainingWords: words });
+			const allowedContribution =
+				unlessHigherThan * remainingWords.length - optimisticOutput;
+
+			const result = solve({
+				possibleWords,
+				remainingWords: words,
+				unlessHigherThan: allowedContribution - 1,
+			});
 
 			optimisticOutput += result.expectation + 1;
 		}
