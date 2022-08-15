@@ -174,14 +174,14 @@ function getGuessExpectation(
 ) {
 	const optimisticIndividualOutput =
 		(1 + (remainingWords.length - 1) * 2) / remainingWords.length;
-	let optimisticOutput = remainingWords.length * optimisticIndividualOutput;
+	let optimisticOutput = remainingWords.includes(guess)
+		? optimisticIndividualOutput * (remainingWords.length - 1) + 1
+		: optimisticIndividualOutput * remainingWords.length;
 
 	for (const solution of remainingWords) {
-		optimisticOutput -= optimisticIndividualOutput;
+		if (solution !== guess) {
+			optimisticOutput -= optimisticIndividualOutput;
 
-		if (solution === guess) {
-			optimisticOutput += 1;
-		} else {
 			const words = getRemainingWords(
 				guess,
 				getPattern(solution, guess),
