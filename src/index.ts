@@ -172,37 +172,45 @@ function getGuessExpectation(
 		unlessHigherThan: number;
 	}
 ) {
+	const remainingWordsOtherThanGuess = remainingWords.filter(
+		(word) => word !== guess
+	);
 	const optimisticIndividualOutput =
 		(1 + (remainingWords.length - 1) * 2) / remainingWords.length;
-	let optimisticOutput = remainingWords.includes(guess)
-		? optimisticIndividualOutput * (remainingWords.length - 1) + 1
-		: optimisticIndividualOutput * remainingWords.length;
+	let optimisticOutput =
+		remainingWordsOtherThanGuess.length < remainingWords.length
+			? optimisticIndividualOutput * remainingWordsOtherThanGuess.length + 1
+			: optimisticIndividualOutput * remainingWords.length;
 
-	for (const solution of remainingWords) {
-		if (solution !== guess) {
-			optimisticOutput -= optimisticIndividualOutput;
+	const patterns = remainingWordsOtherThanGuess.map((solution) =>
+		getPattern(solution, guess)
+	);
 
-			const words = getRemainingWords(
-				guess,
-				getPattern(solution, guess),
-				remainingWords
-			);
+	for (const [pattern, weight] of count(patterns)) {
+		optimisticOutput -= weight * optimisticIndividualOutput;
 
-			if (words.length === remainingWords.length) {
-				throw "useless guess";
-			}
+		const words = getRemainingWords(guess, pattern as Pattern, remainingWords);
 
-			const allowedContribution =
-				unlessHigherThan * remainingWords.length - optimisticOutput;
-
-			const result = solve({
-				possibleWords,
-				remainingWords: words,
-				unlessHigherThan: allowedContribution - 1,
-			});
-
-			optimisticOutput += result.expectation + 1;
+		if (words.length === remainingWords.length) {
+			throw "useless guess";
 		}
+
+		const allowedContribution =
+			unlessHigherThan * remainingWords.length - optimisticOutput;
+
+		const patternUnlessHigherThan = allowedContribution / weight - 1;
+
+		if (patternUnlessHigherThan < 1) {
+			throw "too high";
+		}
+
+		const result = solve({
+			possibleWords,
+			remainingWords: words,
+			unlessHigherThan: patternUnlessHigherThan,
+		});
+
+		optimisticOutput += (result.expectation + 1) * weight;
 
 		if (optimisticOutput > unlessHigherThan * remainingWords.length) {
 			throw "too high";
@@ -222,4 +230,20 @@ function getPossibleChars(remainingWords: Word[]): Set<Char> {
 	}
 
 	return possibleChars;
+}
+
+function count(patterns: string[]) {
+	const map = new Map<string, number>();
+
+	for (const pattern of patterns) {
+		const count = map.get(pattern);
+
+		if (count) {
+			map.set(pattern, count + 1);
+		} else {
+			map.set(pattern, 1);
+		}
+	}
+
+	return map.entries();
 }
