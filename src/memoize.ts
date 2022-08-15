@@ -6,13 +6,14 @@ export function memoize<A extends any[], R>(
 	fun: (...args: A) => R
 ): (...args: A) => R {
 	const memory = new Map<string, R>();
+	const filePath = `${__dirname}/../data/${
+		process.env.NODE_ENV ? process.env.NODE_ENV + "-" : ""
+	}${filename}.json`;
 
-	console.log(`using ${__dirname}/${filename}.json`);
+	console.log(`using ${filePath}`);
 
 	try {
-		const data = readFileSync(`${__dirname}/${filename}.json`, {
-			encoding: "utf8",
-		});
+		const data = readFileSync(filePath, { encoding: "utf8" });
 
 		for (const [key, value] of JSON.parse(data)) {
 			memory.set(key, value);
@@ -22,11 +23,9 @@ export function memoize<A extends any[], R>(
 	}
 
 	function saveMemory() {
-		const data = JSON.stringify([...memory.entries()]);
+		const data = JSON.stringify([...memory.entries()], null, 2);
 
-		writeFileSync(`${__dirname}/${filename}.json`, data, {
-			encoding: "utf8",
-		});
+		writeFileSync(filePath, data, { encoding: "utf8" });
 	}
 
 	if (process && typeof process.on === "function") {

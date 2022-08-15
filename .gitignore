@@ -5,5 +5,4 @@ coverage
 tsconfig.tsbuildinfo
 yarn-error.log
 .eslintcache
-src/expectations.json
-src/patterns.json
+data
