@@ -140,7 +140,7 @@ function* tryEachWord({
 	unlessHigherThan?: number;
 }): Iterable<
 	| { guess: Word; expectation: number }
-	| { guess: Word; error: string; expectation: undefined }
+	| { guess: Word; aborted: string; expectation: undefined }
 > {
 	let unlessHigherThan = initialUnlessHigherThan;
 
@@ -163,9 +163,9 @@ function* tryEachWord({
 			}
 		} catch (error) {
 			if (error === "too high") {
-				yield { guess, error: "too high", expectation: undefined };
+				yield { guess, aborted: "too high", expectation: undefined };
 			} else if (error === "useless guess") {
-				yield { guess, error: "useless guess", expectation: undefined };
+				yield { guess, aborted: "useless guess", expectation: undefined };
 			} else {
 				throw error;
 			}
