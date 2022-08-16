@@ -186,14 +186,20 @@ function getGuessExpectation(
 		getPattern(solution, guess)
 	);
 
-	for (const [pattern, weight] of count(patterns)) {
+	const patternsWithWeight = orderBy(
+		[...count(patterns)],
+		([, weight]) => weight,
+		"desc"
+	);
+
+	if (patternsWithWeight.length === 1) {
+		throw "useless guess";
+	}
+
+	for (const [pattern, weight] of patternsWithWeight) {
 		optimisticOutput -= weight * optimisticIndividualOutput;
 
 		const words = getRemainingWords(guess, pattern as Pattern, remainingWords);
-
-		if (words.length === remainingWords.length) {
-			throw "useless guess";
-		}
 
 		const allowedContribution =
 			unlessHigherThan * remainingWords.length - optimisticOutput;
