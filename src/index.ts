@@ -78,12 +78,25 @@ export const solve = memoize(
 		bestGuess: Word;
 		expectation: number;
 	} {
-		const possibleLetters = getPossibleChars(remainingWords);
+		const charFrequencies = getCharFrequencies(remainingWords);
 		const guesses = orderBy(
 			possibleWords.filter((word) =>
-				word.split("").some((char) => possibleLetters.has(char))
+				word.split("").some((char) => charFrequencies.has(char))
 			),
-			(word) => (remainingWords.includes(word) ? 0 : 1)
+			[
+				(word) => (remainingWords.includes(word) ? 0 : 1),
+				(word) =>
+					word
+						.split("")
+						.map((char) => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							const frequency = charFrequencies.get(char)!;
+
+							return frequency * (1 - frequency);
+						})
+						.reduce((sum, score) => sum + score, 0),
+			],
+			["asc", "desc"]
 		);
 
 		let iterable = tryEachWord({
@@ -226,30 +239,44 @@ function getGuessExpectation(
 	return optimisticOutput / remainingWords.length;
 }
 
-function getPossibleChars(remainingWords: Word[]): Set<Char> {
-	const possibleChars = new Set<Char>();
+function getCharFrequencies(remainingWords: Word[]): Map<Char, number> {
+	const charFrequencies = new Counter<Char>();
 
 	for (const word of remainingWords) {
-		for (const char of word) {
-			possibleChars.add(char);
+		for (const char of new Set(word.split(""))) {
+			charFrequencies.add(char);
 		}
 	}
 
-	return possibleChars;
+	for (const char of charFrequencies.keys()) {
+		charFrequencies.set(
+			char,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			charFrequencies.get(char)! / remainingWords.length
+		);
+	}
+
+	return charFrequencies;
 }
 
-function count(patterns: string[]) {
-	const map = new Map<string, number>();
+function count(patterns: Pattern[]) {
+	const counter = new Counter<Pattern>();
 
 	for (const pattern of patterns) {
-		const count = map.get(pattern);
-
-		if (count) {
-			map.set(pattern, count + 1);
-		} else {
-			map.set(pattern, 1);
-		}
+		counter.add(pattern);
 	}
 
-	return map.entries();
+	return counter.entries();
+}
+
+class Counter<K> extends Map<K, number> {
+	add(key: K) {
+		const count = this.get(key);
+
+		if (count) {
+			this.set(key, count + 1);
+		} else {
+			this.set(key, 1);
+		}
+	}
 }
