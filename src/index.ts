@@ -1,5 +1,5 @@
 import assert from "assert";
-import { orderBy } from "lodash";
+import { orderBy } from "./orderBy";
 import { memoize } from "./memoize";
 import { progress } from "./progress";
 
@@ -96,8 +96,7 @@ export const solve = memoize(
 					word
 						.split("")
 						.map((char) => {
-							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							const frequency = charFrequencies.get(char)!;
+							const frequency = charFrequencies.get(char) ?? 0;
 
 							return frequency * (1 - frequency);
 						})
@@ -208,8 +207,8 @@ function getGuessExpectation(
 
 	const patternsWithWeight = orderBy(
 		[...count(patterns)],
-		([, weight]) => weight,
-		"desc"
+		[([, weight]) => weight],
+		["desc"]
 	);
 
 	if (patternsWithWeight.length === 1) {
