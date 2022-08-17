@@ -19,7 +19,7 @@ export function memoize<A extends any[], R>(
 	}
 
 	if (options.filename) {
-		const filePath = `${__dirname}/../data/${
+		filePath = `${__dirname}/../data/${
 			process.env.NODE_ENV ? process.env.NODE_ENV + "-" : ""
 		}${options.filename}.json`;
 
