@@ -1,3 +1,5 @@
+import ms from "ms";
+
 export function* progress<T>(
 	process: Iterable<T>,
 	operationCount: number
@@ -9,12 +11,14 @@ export function* progress<T>(
 		doneCount++;
 
 		const percent = ((doneCount / operationCount) * 100).toFixed(2);
-		const estimatedDate = new Date(
-			new Date().valueOf() +
-				((new Date().valueOf() - start.valueOf()) * operationCount) / doneCount
-		);
+		const elapsed = new Date().valueOf() - start.valueOf();
+		const remainingEstimation =
+			(elapsed * operationCount) / doneCount - elapsed;
+
 		console.log(
-			`${percent}% (estimated: ${estimatedDate}): ${JSON.stringify(operation)}`
+			`${percent}% (elapsed: ${ms(elapsed)}, remaining: ${ms(
+				remainingEstimation
+			)}): ${JSON.stringify(operation)}`
 		);
 		yield operation;
 	}
