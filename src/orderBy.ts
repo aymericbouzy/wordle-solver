@@ -1,3 +1,5 @@
+import { memoize } from "./memoize";
+
 type Iteratee<T> = (value: T) => number;
 
 export function orderBy<T>(
@@ -5,10 +7,12 @@ export function orderBy<T>(
 	iteratees: Iteratee<T>[],
 	orders: ("asc" | "desc")[]
 ): T[] {
+	const memoizedIteratees = iteratees.map((iteratee) => memoize(iteratee));
+
 	function compare(a: T, b: T) {
-		for (let i = 0; i < iteratees.length; i++) {
-			const valueA = iteratees[i](a);
-			const valueB = iteratees[i](b);
+		for (let i = 0; i < memoizedIteratees.length; i++) {
+			const valueA = memoizedIteratees[i](a);
+			const valueB = memoizedIteratees[i](b);
 
 			if (valueA == valueB) {
 				continue;
