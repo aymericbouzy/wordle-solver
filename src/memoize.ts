@@ -1,37 +1,45 @@
 import { readFileSync, writeFileSync } from "fs";
 
+type Options<A> = { filename?: string; serialize?: (args: A) => string };
+
 export function memoize<A extends any[], R>(
-	filename: string,
-	serialize: (args: A) => string,
-	fun: (...args: A) => R
+	fun: (...args: A) => R,
+	options: Options<A> = {}
 ): (...args: A) => R {
+	const { serialize = JSON.stringify } = options;
 	const memory = new Map<string, R>();
-	const filePath = `${__dirname}/../data/${
-		process.env.NODE_ENV ? process.env.NODE_ENV + "-" : ""
-	}${filename}.json`;
-
-	console.log(`using ${filePath}`);
-
-	try {
-		const data = readFileSync(filePath, { encoding: "utf8" });
-
-		for (const [key, value] of JSON.parse(data)) {
-			memory.set(key, value);
-		}
-	} catch {
-		console.info("no data found");
-	}
+	let filePath: string;
 
 	function saveMemory() {
-		const data = JSON.stringify([...memory.entries()], null, 2);
+		if (options.filename) {
+			const data = JSON.stringify([...memory.entries()], null, 2);
 
-		writeFileSync(filePath, data, { encoding: "utf8" });
+			writeFileSync(filePath, data, { encoding: "utf8" });
+		}
 	}
 
-	if (process && typeof process.on === "function") {
-		process.on("exit", () => {
-			saveMemory();
-		});
+	if (options.filename) {
+		const filePath = `${__dirname}/../data/${
+			process.env.NODE_ENV ? process.env.NODE_ENV + "-" : ""
+		}${options.filename}.json`;
+
+		console.log(`using ${filePath}`);
+
+		try {
+			const data = readFileSync(filePath, { encoding: "utf8" });
+
+			for (const [key, value] of JSON.parse(data)) {
+				memory.set(key, value);
+			}
+		} catch {
+			console.info("no data found");
+		}
+
+		if (process && typeof process.on === "function") {
+			process.on("exit", () => {
+				saveMemory();
+			});
+		}
 	}
 
 	let counter = 0;

@@ -14,8 +14,6 @@ export type Pattern =
 const fiveLetterWord = /^[A-Z]{5}$/;
 
 export const getPattern = memoize(
-	"patterns",
-	([solution, guess]) => `${solution}:${guess}`,
 	(solution: Word, guess: Word) => {
 		assert.ok(fiveLetterWord.test(solution));
 		assert.ok(fiveLetterWord.test(guess));
@@ -48,6 +46,10 @@ export const getPattern = memoize(
 		const stringPattern = pattern.join("") as Pattern;
 
 		return stringPattern;
+	},
+	{
+		filename: "patterns",
+		serialize: ([solution, guess]) => `${solution}:${guess}`,
 	}
 );
 
@@ -62,8 +64,6 @@ export function getRemainingWords(
 }
 
 export const solve = memoize(
-	"expectations",
-	([{ remainingWords }]) => remainingWords.sort().join(","),
 	function ({
 		possibleWords,
 		remainingWords,
@@ -133,6 +133,10 @@ export const solve = memoize(
 		}
 
 		throw "too high";
+	},
+	{
+		filename: "expectations",
+		serialize: ([{ remainingWords }]) => remainingWords.sort().join(","),
 	}
 );
 
