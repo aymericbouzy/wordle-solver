@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 
 export function memoize<A extends any[], R>(
 	filename: string,
-	serialize: (...args: A) => string,
+	serialize: (args: A) => string,
 	fun: (...args: A) => R
 ): (...args: A) => R {
 	const memory = new Map<string, R>();
@@ -37,7 +37,7 @@ export function memoize<A extends any[], R>(
 	let counter = 0;
 
 	return (...args) => {
-		const serializedArgs = serialize(...args);
+		const serializedArgs = serialize(args);
 
 		if (!memory.has(serializedArgs)) {
 			memory.set(serializedArgs, fun(...args));
