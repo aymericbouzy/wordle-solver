@@ -50,7 +50,7 @@ export function memoize<A extends any[], R>(
 		if (!memory.has(serializedArgs)) {
 			memory.set(serializedArgs, fun(...args));
 
-			if (counter > 500) {
+			if (counter > 100) {
 				counter = 0;
 				saveMemory();
 			} else {
