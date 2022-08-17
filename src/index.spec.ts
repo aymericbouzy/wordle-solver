@@ -69,6 +69,15 @@ describe("solver", () => {
 		expect(bestGuess).toBe("FLEUR");
 	});
 
+	it("works with 2 words only", async () => {
+		const { bestGuess, expectation } = solve({
+			possibleWords: (await import("./words.json")).default,
+			remainingWords: ["MONTS", "MOTOS"],
+		});
+		expect(expectation).toBe(1.5);
+		expect(bestGuess).toMatch(/^(MONTS|MOTOS)$/);
+	});
+
 	it("works with a complex example", async () => {
 		const { bestGuess, expectation } = solve({
 			possibleWords: (await import("./words.json")).default,

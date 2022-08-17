@@ -78,6 +78,13 @@ export const solve = memoize(
 		bestGuess: Word;
 		expectation: number;
 	} {
+		if (remainingWords.length < 3) {
+			return {
+				bestGuess: remainingWords[0],
+				expectation: remainingWords.length === 1 ? 1 : 1.5,
+			};
+		}
+
 		const charFrequencies = getCharFrequencies(remainingWords);
 		const guesses = orderBy(
 			possibleWords.filter((word) =>
