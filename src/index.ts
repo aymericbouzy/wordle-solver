@@ -1,7 +1,7 @@
 import assert from "assert";
-import { orderBy } from "./orderBy";
 import { memoize } from "./memoize";
 import { progress } from "./progress";
+import { sort } from "fast-sort";
 
 type Char = string;
 // FIXME
@@ -86,13 +86,14 @@ export const solve = memoize(
 		}
 
 		const charFrequencies = getCharFrequencies(remainingWords);
-		const guesses = orderBy(
+		const guesses = sort(
 			possibleWords.filter((word) =>
 				word.split("").some((char) => charFrequencies.has(char))
-			),
-			[
-				(word) => (remainingWords.includes(word) ? 0 : 1),
-				(word) =>
+			)
+		).by([
+			{ asc: (word) => (remainingWords.includes(word) ? 0 : 1) },
+			{
+				desc: (word) =>
 					word
 						.split("")
 						.map((char) => {
@@ -101,9 +102,8 @@ export const solve = memoize(
 							return frequency * (1 - frequency);
 						})
 						.reduce((sum, score) => sum + score, 0),
-			],
-			["asc", "desc"]
-		);
+			},
+		]);
 
 		let iterable = tryEachWord({
 			remainingWords,
@@ -209,11 +209,9 @@ function getGuessExpectation(
 		getPattern(solution, guess)
 	);
 
-	const patternsWithWeight = orderBy(
-		[...count(patterns)],
-		[([, weight]) => weight],
-		["desc"]
-	);
+	const patternsWithWeight = sort([...count(patterns)]).by({
+		desc: ([, weight]) => weight,
+	});
 
 	if (patternsWithWeight.length === 1) {
 		throw "useless guess";
