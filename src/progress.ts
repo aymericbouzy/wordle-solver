@@ -16,7 +16,7 @@ export function* progress<T>(
 			(elapsed * operationCount) / doneCount - elapsed;
 
 		console.log(
-			`${percent}% (elapsed: ${ms(elapsed)}, remaining: ${ms(
+			`${percent}% (elapsed: ${ms(elapsed)}, remaining: ~${ms(
 				remainingEstimation
 			)}): ${JSON.stringify(operation)}`
 		);
