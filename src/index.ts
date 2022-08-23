@@ -97,8 +97,7 @@ export const solve = memoize(
 			},
 			{
 				desc: (word) =>
-					word
-						.split("")
+					[...new Set(word.split(""))]
 						.map((char) => {
 							const frequency = charFrequencies.get(char) ?? 0;
 
