@@ -91,7 +91,10 @@ export const solve = memoize(
 				word.split("").some((char) => charFrequencies.has(char))
 			)
 		).by([
-			{ asc: (word) => (remainingWords.includes(word) ? 0 : 1) },
+			{
+				asc: (word) =>
+					remainingWords.length < 20 && remainingWords.includes(word) ? 0 : 1,
+			},
 			{
 				desc: (word) =>
 					word
