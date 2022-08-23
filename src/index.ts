@@ -142,6 +142,8 @@ export const solve = memoize(
 	}
 );
 
+const PRECISION = 1e-6;
+
 function* tryEachWord({
 	remainingWords,
 	possibleWords,
@@ -170,7 +172,7 @@ function* tryEachWord({
 
 			yield { expectation, guess };
 
-			if (expectation < 2) {
+			if (expectation + PRECISION < 2) {
 				break;
 			}
 		} catch (error) {
