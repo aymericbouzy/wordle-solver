@@ -93,7 +93,7 @@ export const solve = memoize(
 		).by([
 			{
 				asc: (word) =>
-					remainingWords.length < 20 && remainingWords.includes(word) ? 0 : 1,
+					remainingWords.length < 15 && remainingWords.includes(word) ? 0 : 1,
 			},
 			{
 				desc: (word) =>
