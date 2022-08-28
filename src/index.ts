@@ -187,7 +187,7 @@ function* tryEachWord({
 	}
 }
 
-function getGuessExpectation(
+export function getGuessExpectation(
 	guess: Word,
 	{
 		possibleWords,
