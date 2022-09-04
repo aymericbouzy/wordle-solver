@@ -63,6 +63,8 @@ export function getRemainingWords(
 	});
 }
 
+const PRECISION = 1e-6;
+
 export const solve = memoize(
 	function ({
 		possibleWords,
@@ -92,10 +94,6 @@ export const solve = memoize(
 			)
 		).by([
 			{
-				asc: (word) =>
-					remainingWords.length < 15 && remainingWords.includes(word) ? 0 : 1,
-			},
-			{
 				desc: (word) =>
 					[...new Set(word.split(""))]
 						.map((char) => {
@@ -107,11 +105,33 @@ export const solve = memoize(
 			},
 		]);
 
-		let iterable = tryEachWord({
-			remainingWords,
-			possibleWords: guesses,
-			unlessHigherThan,
-		});
+		let iterable =
+			remainingWords.length < 15
+				? join(
+						tryEachWord({
+							remainingWords,
+							possibleWords,
+							wordsToTry: guesses.filter((word) =>
+								remainingWords.includes(word)
+							),
+							unlessHigherThan,
+						}),
+						tryEachWord({
+							remainingWords,
+							possibleWords,
+							wordsToTry: guesses.filter(
+								(word) => !remainingWords.includes(word)
+							),
+							stopIfLowerThan: 2 + PRECISION,
+							unlessHigherThan,
+						})
+				  )
+				: tryEachWord({
+						remainingWords,
+						possibleWords: guesses,
+						wordsToTry: guesses,
+						unlessHigherThan,
+				  });
 
 		if (printProgress) {
 			iterable = progress(iterable, guesses.length);
@@ -142,15 +162,17 @@ export const solve = memoize(
 	}
 );
 
-const PRECISION = 1e-6;
-
 function* tryEachWord({
 	remainingWords,
 	possibleWords,
+	wordsToTry,
+	stopIfLowerThan = 2 - PRECISION,
 	unlessHigherThan: initialUnlessHigherThan = NaN,
 }: {
 	remainingWords: Word[];
 	possibleWords: Word[];
+	wordsToTry: Word[];
+	stopIfLowerThan?: number;
 	unlessHigherThan?: number;
 }): Iterable<
 	| { guess: Word; expectation: number }
@@ -158,7 +180,7 @@ function* tryEachWord({
 > {
 	let unlessHigherThan = initialUnlessHigherThan;
 
-	for (const guess of possibleWords) {
+	for (const guess of wordsToTry) {
 		try {
 			const expectation = getGuessExpectation(guess, {
 				possibleWords,
@@ -172,7 +194,7 @@ function* tryEachWord({
 
 			yield { expectation, guess };
 
-			if (expectation + PRECISION < 2) {
+			if (expectation < stopIfLowerThan) {
 				break;
 			}
 		} catch (error) {
@@ -290,5 +312,14 @@ class Counter<K> extends Map<K, number> {
 		} else {
 			this.set(key, 1);
 		}
+	}
+}
+
+function* join<T>(it1: Iterable<T>, it2: Iterable<T>): Iterable<T> {
+	for (const x of it1) {
+		yield x;
+	}
+	for (const x of it2) {
+		yield x;
 	}
 }
