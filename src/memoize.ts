@@ -2,6 +2,9 @@ import { readFileSync, writeFileSync } from "fs";
 
 type Options<A> = { filename?: string; serialize?: (args: A) => string };
 
+// 10 seconds
+const SAVE_INTERVAL = 10_000;
+
 export function memoize<A extends any[], R>(
 	fun: (...args: A) => R,
 	options: Options<A> = {}
@@ -42,20 +45,18 @@ export function memoize<A extends any[], R>(
 		}
 	}
 
-	let counter = 0;
+	let lastSave = new Date();
 
 	return (...args) => {
 		const serializedArgs = serialize(args);
 
 		if (!memory.has(serializedArgs)) {
 			memory.set(serializedArgs, fun(...args));
+		}
 
-			if (counter > 100) {
-				counter = 0;
-				saveMemory();
-			} else {
-				counter++;
-			}
+		if (new Date().valueOf() - lastSave.valueOf() > SAVE_INTERVAL) {
+			saveMemory();
+			lastSave = new Date();
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
